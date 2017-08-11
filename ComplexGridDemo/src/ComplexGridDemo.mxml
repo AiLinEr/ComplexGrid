@@ -1,0 +1,185 @@
+<?xml version="1.0" encoding="utf-8"?>
+<s:Application xmlns:fx="http://ns.adobe.com/mxml/2009" 
+			   xmlns:s="library://ns.adobe.com/flex/spark" 
+			   xmlns:mx="library://ns.adobe.com/flex/mx" width="650" height="600">
+	
+	<fx:Script>
+		<![CDATA[
+			import ale.complexGrid.ComplexGridTool;
+			
+			import flash.utils.flash_proxy;
+			import flash.utils.getDefinitionByName;
+			
+			import mx.collections.ArrayCollection;
+			import mx.collections.IList;
+			import mx.controls.Alert;
+			import mx.rpc.AsyncResponder;
+			import mx.rpc.AsyncToken;
+			import mx.rpc.events.FaultEvent;
+			import mx.rpc.events.ResultEvent;
+			import mx.rpc.http.HTTPService;
+			import mx.utils.object_proxy;
+			
+			import spark.components.DataGrid;
+			import spark.components.Group;
+			
+			private var file:FileReference ;
+			private var http:HTTPService;
+			private var resultHttp:HTTPService;
+			
+			private var config:XML;
+			private var data:Object;
+			
+			protected function importFile_clickHandler(event:MouseEvent):void
+			{
+				/* if (!file)
+				{
+					 file = new FileReference();
+					configureListeners(file);
+					file.browse(getTypes()); 
+				} */
+				if (!http)
+				{
+					http = new HTTPService();
+					http.url = this.filePath.text;
+					http.method = 'get';
+					http.resultFormat = "xml";
+				}
+				var asyncToken:AsyncToken  =  http.send();
+				asyncToken.addResponder(new AsyncResponder(resultHandle, faultHandle));
+				
+				if (!resultHttp)
+				{
+					resultHttp = new HTTPService();
+					resultHttp.url = "result.json";
+					resultHttp.method = 'get';
+					resultHttp.resultFormat = "object";
+				}
+				var token:AsyncToken  =  resultHttp.send();
+				token.addResponder(new AsyncResponder(resultHandle, faultHandle));
+			}
+			
+			private function resultHandle(event:ResultEvent, token:Object=null):void
+			{
+				var result:Object = event.result;
+				if (result is XMLNode)
+				{
+					var xml:XML = new XML((result as XMLNode).toString());
+					this.config = xml;
+				}
+				else if (result is String)
+				{
+					var json:Object = JSON.parse(result as String);
+					this.data = json;
+				}
+				
+				if (this.config && this.data)
+				{
+					// create datagrid 
+					resultPane.removeAllElements();
+					for each(var tableXml:XML in this.config.children())
+					{
+						var dataprovider:IList;
+						var tableName:String = tableXml.@tableName;
+						if ( tableName )
+							dataprovider = new ArrayCollection(this.data[tableName]);
+						var gp:Group = new Group();
+						gp.width = 600;
+						gp.height = 200;
+						var dg:DataGrid = ComplexGridTool.createGrid(tableXml, dataprovider);
+						dg.percentWidth = dg.percentHeight = 100;
+						this.resultPane.addElement(dg);
+					}
+				}
+			}
+			private function faultHandle(fault:Object, token:Object=null):void
+			{
+				Alert.show(fault.message.faultDetail);
+			}
+			
+			
+			private function configureListeners(dispatcher:IEventDispatcher):void {
+				dispatcher.addEventListener(Event.CANCEL, cancelHandler);
+				dispatcher.addEventListener(Event.COMPLETE, completeHandler);
+				dispatcher.addEventListener(HTTPStatusEvent.HTTP_STATUS, httpStatusHandler);
+				dispatcher.addEventListener(IOErrorEvent.IO_ERROR, ioErrorHandler);
+				dispatcher.addEventListener(Event.OPEN, openHandler);
+				dispatcher.addEventListener(ProgressEvent.PROGRESS, progressHandler);
+				dispatcher.addEventListener(SecurityErrorEvent.SECURITY_ERROR, securityErrorHandler);
+				dispatcher.addEventListener(Event.SELECT, selectHandler);
+				dispatcher.addEventListener(DataEvent.UPLOAD_COMPLETE_DATA,uploadCompleteDataHandler);
+			}
+			
+			private function getTypes():Array {
+				var allTypes:Array = new Array(getXMLTypeFilter());
+				return allTypes;
+			}
+			
+			private function getXMLTypeFilter():FileFilter {
+				return new FileFilter("XML文件 (*.xml)", "*.xml");
+			}
+			
+			private function getImageTypeFilter():FileFilter {
+				return new FileFilter("Images (*.jpg, *.jpeg, *.gif, *.png)", "*.jpg;*.jpeg;*.gif;*.png");
+			}
+			
+			private function getTextTypeFilter():FileFilter {
+				return new FileFilter("Text Files (*.txt, *.rtf)", "*.txt;*.rtf");
+			}
+			
+			private function cancelHandler(event:Event):void {
+				trace("cancelHandler: " + event);
+			}
+			
+			private function completeHandler(event:Event):void {
+				trace("completeHandler: " + event);
+			}
+			
+			private function uploadCompleteDataHandler(event:DataEvent):void {
+				trace("uploadCompleteData: " + event);
+			}
+			
+			private function httpStatusHandler(event:HTTPStatusEvent):void {
+				trace("httpStatusHandler: " + event);
+			}
+			
+			private function ioErrorHandler(event:IOErrorEvent):void {
+				trace("ioErrorHandler: " + event);
+			}
+			
+			private function openHandler(event:Event):void {
+				trace("openHandler: " + event);
+			}
+			
+			private function progressHandler(event:ProgressEvent):void {
+				var file:FileReference = FileReference(event.target);
+				trace("progressHandler name=" + file.name + " bytesLoaded=" + event.bytesLoaded + " bytesTotal=" + event.bytesTotal);
+			}
+			
+			private function securityErrorHandler(event:SecurityErrorEvent):void {
+				trace("securityErrorHandler: " + event);
+			}
+			
+			private function selectHandler(event:Event):void {
+				var file:FileReference = FileReference(event.target);
+				
+			}
+				
+		]]>
+	</fx:Script>
+	
+	<fx:Declarations>
+		<!-- 将非可视元素（例如服务、值对象）放在此处 -->
+	</fx:Declarations>
+	
+	<s:VGroup width="100%" paddingLeft="10" paddingRight="10" horizontalAlign="left">
+		<s:HGroup width="100%" height="30" verticalAlign="middle" horizontalAlign="left">
+			<s:Label text="Head ConfigPath:" width="100"/>
+			<s:TextInput id="filePath" width="100%" text="header.xml" editable="false"/>
+			<s:Button id="importFile" label="导入XML" click="importFile_clickHandler(event)"/>
+		</s:HGroup>
+		<s:VGroup id="resultPane" width="100%" height="100%">
+			
+		</s:VGroup>
+	</s:VGroup>
+</s:Application>

@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="utf-8"?>
+<s:GridItemRenderer xmlns:fx="http://ns.adobe.com/mxml/2009" 
+					xmlns:s="library://ns.adobe.com/flex/spark" 
+					xmlns:mx="library://ns.adobe.com/flex/mx" clipAndEnableScrolling="true">
+	
+	<fx:Script>
+		<![CDATA[
+			import utils.GeoString;
+			/* override public function prepare(hasBeenRecycled:Boolean):void 
+			{
+//				if (hasBeenRecycled==false)
+//					return;
+//				lblData.text = data[column.dataField];
+				var itemXML:XML = data as XML;
+				//-1为分类占用的一列
+				const strLabel:String =  itemXML.children()[column.columnIndex-1].text();
+				lblData.text = strLabel;
+			}  */
+			
+			
+			override public function set data(value:Object):void
+			{
+				super.data = value;
+				if (value is String)
+				{
+					var str:String = value as String;
+					if (GeoString.isNullOrEmpty(str)==false)
+					{
+						str.replace("NaN", "0");
+					}
+				}
+			}
+			
+		]]>
+	</fx:Script>
+	
+	<!--<s:Label id="lblData" top="2" left="7" right="5" bottom="2" textAlign="right" verticalAlign="middle" text="{label}"/>-->
+	<s:Label textAlign="left" verticalAlign="middle" text="{label}" paddingLeft="4" paddingRight="4" paddingTop="2" paddingBottom="2" />
+	
+</s:GridItemRenderer>

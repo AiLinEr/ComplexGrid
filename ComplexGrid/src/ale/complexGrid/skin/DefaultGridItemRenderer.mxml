@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="utf-8"?>
+<s:GridItemRenderer xmlns:fx="http://ns.adobe.com/mxml/2009" 
+				xmlns:s="library://ns.adobe.com/flex/spark" 
+				xmlns:mx="library://ns.adobe.com/flex/mx" >
+	
+	<fx:Script>
+		<![CDATA[
+			
+			
+			override public function set data(value:Object):void
+			{
+				super.data = value;
+				label = labelString = value[column.dataField];
+			}
+			
+			[Bindable]
+			public var labelString:String;
+		]]>
+	</fx:Script>
+	<s:Label textAlign="left" verticalAlign="middle" text="{labelString}" paddingLeft="4" paddingRight="4" paddingTop="2" paddingBottom="2" />
+	
+</s:GridItemRenderer>

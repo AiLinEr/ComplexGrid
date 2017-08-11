@@ -1,0 +1,41 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<root>
+	<table tableName="常规表格">
+		<column headerText="用地代码" dataField="NAME" width="100"/>
+		<column headerText="用地分类" dataField="TBS" width="150"/>
+		<column headerText="用地面积（ha）" dataField="TBMJ"/>
+	</table>
+	<table tableName="多级表格">
+		<column headerText="分类" dataField="NAME" width="80"/>
+		<columngroup headerText="高速公路"  width="240">
+			<column headerText="现状已建" dataField="DL_LEN_XZ_高速公路"/>
+			<column headerText="规划待建" dataField="DL_LEN_GH_高速公路"/>
+			<column headerText="总计" dataField="DL_LEN_高速公路"/>
+		</columngroup>
+		<columngroup headerText="快速路"  width="240">
+			<column headerText="现状已建" dataField="DL_LEN_XZ_快速路"/>
+			<column headerText="规划待建" dataField="DL_LEN_GH_快速路"/>
+			<column headerText="总计" dataField="DL_LEN_快速路"/>
+		</columngroup>
+		<columngroup headerText="主干路"  width="240">
+			<column headerText="现状已建" dataField="DL_LEN_XZ_主干路"/>
+			<column headerText="规划待建" dataField="DL_LEN_GH_主干路"/>
+			<column headerText="总计" dataField="DL_LEN_主干路"/>
+		</columngroup>
+		<columngroup headerText="次干路"  width="240">
+			<column headerText="现状已建" dataField="DL_LEN_XZ_次干路"/>
+			<column headerText="规划待建" dataField="DL_LEN_GH_次干路"/>
+			<column headerText="总计" dataField="DL_LEN_次干路"/>
+		</columngroup>
+		<columngroup headerText="支路"  width="240">
+			<column headerText="现状已建" dataField="DL_LEN_XZ_支路"/>
+			<column headerText="规划待建" dataField="DL_LEN_GH_支路"/>
+			<column headerText="总计" dataField="DL_LEN_支路"/>
+		</columngroup>
+		<columngroup headerText="巷道"  width="240">
+			<column headerText="现状已建" dataField="DL_LEN_XZ_巷道"/>
+			<column headerText="规划待建" dataField="DL_LEN_GH_巷道"/>
+			<column headerText="总计" dataField="DL_LEN_巷道"/>
+		</columngroup>
+	</table>
+</root>

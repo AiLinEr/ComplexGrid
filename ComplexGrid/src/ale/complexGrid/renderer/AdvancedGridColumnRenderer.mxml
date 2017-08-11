@@ -1,0 +1,203 @@
+<?xml version="1.0" encoding="utf-8"?>
+<s:GridItemRenderer xmlns:fx="http://ns.adobe.com/mxml/2009" 
+					xmlns:s="library://ns.adobe.com/flex/spark" 
+					xmlns:mx="library://ns.adobe.com/flex/mx" clipAndEnableScrolling="true" 
+					minWidth="120"
+					rollOver="griditemrenderer1_rollOverHandler(event)"
+					rollOut="griditemrenderer1_rollOutHandler(event)">
+	
+	<fx:Script>
+		<![CDATA[
+			
+			import mx.collections.ArrayCollection;
+			import mx.collections.IList;
+			import mx.events.FlexEvent;
+			import mx.graphics.IStroke;
+			import mx.graphics.SolidColorStroke;
+			
+			import spark.components.DataGrid;
+			import spark.components.Label;
+			import spark.primitives.Line;
+			override public function prepare(hasBeenRecycled:Boolean):void 
+			{
+				super.prepare(hasBeenRecycled);
+				
+				dataGrid = grid.dataGrid;
+				if (!dataGrid) return;
+				
+//				this.alternatingRowColors = dataGrid.getStyle("alternatingRowColors") as Array;
+//				this.selectionColor = dataGrid.getStyle("selectionColor") as uint;
+			}
+			
+			private var alternatingRowColors:Array=[0xFFFFFF, 0xF4F4F4];
+			private var selectionColor:uint = 0;
+			
+			override public function set selected(value:Boolean):void
+			{
+				super.selected = value;
+				/* if (selected)
+				{
+					for (var i:int = 0 ; i < this.labelFields.length ; i++)
+					{
+						var _label:Label = this.labelFields[i] as Label;
+						_label.styleName = "labelStyle_selected";
+					}
+				}
+				else
+				{
+					for (var i:int = 0 ; i < this.labelFields.length ; i++)
+					{
+						var _label:Label = this.labelFields[i] as Label;
+						_label.styleName = "labelStyle_selected";
+					}
+				} */
+			}
+			
+//			private function set labelStyle_backgroundColor(clr:uint):void
+//			{
+//				//styleManager.getStyleDeclarations(".labelStyle")
+//				var cssStyle:mx.styles.CSSStyleDeclaration = styleManager.getStyleDeclaration(".labelStyle");
+//				cssStyle.setStyle("backgroundColor", clr);
+//			}
+			
+			override public function set data(value:Object):void
+			{
+				super.data = value;
+				
+				this.columnXML = new XML(column.dataField) as XML;
+				
+				this.dataFields.splice(0);
+				var fieldXMLList:XMLList = columnXML..column;
+				if ( !fieldXMLList || fieldXMLList.length() == 0) return;
+				for each (var xml:XML in fieldXMLList)
+				{
+					var _headerText:String = xml.@headerText ;
+					var _dataField:String = xml.@dataField;
+					var _width:Number = parseFloat(xml.hasOwnProperty("@width") && xml.@width != null ? xml.@width.toXMLString() : null );
+					this.dataFields.push({ headerText: _headerText, dataField: _dataField, width: _width });
+				}
+				//构建对应数量的Label 
+				if (h_labelDisplayGroup && h_labelDisplayGroup.numElements == 0 && labelDisplayGroup.numElements == 1)
+				{
+					h_labelDisplayGroup.removeAllElements();
+					this.labelFields.splice(0);
+					for each (var obj:Object in dataFields)
+					{
+						if (h_labelDisplayGroup.numElements > 0)
+						{
+							 var sep:Line = new Line();
+							var stroke:IStroke = new SolidColorStroke(0xCBCBCB, 1, 1 );
+							sep.stroke = stroke;
+							sep.xFrom=sep.xTo= this.width / dataFields.length ;
+							sep.yFrom= 0;
+							if (!grid.variableRowHeight)
+								sep.yTo= grid.rowHeight; 
+							else
+								sep.yTo = measuredHeight;
+//							var sep:Line = grid.columnSeparator.newInstance() as Line;
+							h_labelDisplayGroup.addElement(sep);
+						}
+						var _label:Label = new Label();
+						_label.styleName = "labelStyle";
+						//根据状态设置 backgroundColor ， 默认是  itemIndex / this.alternatingRowColors.length 
+//						 const rowId:int = Math.floor(this.rowIndex /this.alternatingRowColors.length);
+//						 //_label.setStyle("backgroundColor" , this.alternatingRowColors[rowId] as uint) ;
+//						 labelStyle_backgroundColor = this.alternatingRowColors[rowId] as uint;
+						
+						_label.percentWidth = _label.percentHeight = 100;
+						_label.minWidth = 60;//设置最小值，可以使GridColumn.width不会自动压缩
+						_label.top = _label.bottom = 9;
+						_label.left = _label.right = 6;
+						
+						_label.id = "lbl_"+h_labelDisplayGroup.numElements;
+						this.labelFields.push(_label);
+						h_labelDisplayGroup.addElement(_label);
+					}
+					this.labelDisplayGroup.addElement(h_labelDisplayGroup);
+				}
+				
+				if (value is Object)
+				{
+					//label = column.labelFunction == null ? value[column.dataField] : column.labelFunction();
+					for (var i:int = 0 ; i < this.labelFields.length ; i++)
+					{
+						var _lbl:Label = this.labelFields[i] as Label;
+						var _obj:Object = this.dataFields[i];//labelField（存放Label控件）、dataFields（存放配置对象）是对应关系 
+						if (data && data.hasOwnProperty( _obj.dataField ))
+							_lbl.text = data [ _obj.dataField ] == null ?  "" :  data [ _obj.dataField ] ; 
+					}
+				}
+
+			}
+			
+			
+			[Bindable]
+			private var dp:IList = new ArrayCollection();
+			
+			[Bindable]
+			private var dataGrid:DataGrid;
+			private var labelFields:Array = [];
+			private var dataFields:Array=[];
+			private var columnXML:XML;
+			
+			
+			protected function griditemrenderer1_rollOverHandler(event:MouseEvent):void
+			{
+				/*  for (var i:int = 0 ; i < this.labelFields.length ; i++)
+				{
+					var _label:Label = this.labelFields[i] as Label;
+					_label.setStyle("styleName", "labelStyle_over");
+				}  */
+			}
+			
+			protected function griditemrenderer1_rollOutHandler(event:MouseEvent):void
+			{
+				/*  for (var i:int = 0 ; i < this.labelFields.length ; i++)
+				{
+					var _label:Label = this.labelFields[i] as Label;
+					_label.setStyle("styleName", "labelStyle");
+				}  
+				const rowId:int = Math.floor(this.rowIndex /this.alternatingRowColors.length);
+				labelStyle_backgroundColor = this.alternatingRowColors[rowId] as uint; */
+				
+			}
+			
+		]]>
+	</fx:Script>
+	<fx:Style>
+		@namespace s "library://ns.adobe.com/flex/spark";
+		@namespace mx "library://ns.adobe.com/flex/mx";
+		@namespace itemRenderer "widgets.DecisionSupport2.controls.superGrid.itemRenderer.*";
+		@namespace datagrid "com.geo.skins.series.ghyzt.datagrid.*";
+		/* s|Label
+		{
+			opaqueBackground:#EDF6FE;
+			backgroundColor:#EDF6FE;
+			textAlign:center;
+			verticalAlign:middle;
+		} */
+		.labelStyle
+		{
+			/* opaqueBackground:#EDF6FE;   */
+			/* backgroundColor:#FFF694;  *//* selected:FFF694  over:E0ECFF*/
+			textAlign:center;
+			verticalAlign:middle;
+			color:#4C607A;
+			marginLeft:0px;
+			marginRight:0px;
+			marginTop:0px;
+			marginRight:1px;
+		}
+		
+		
+	</fx:Style>
+	<fx:Declarations>
+		<s:HGroup id="h_labelDisplayGroup" left="0" right="0" top="0" bottom="0" gap="0">
+			
+		</s:HGroup>
+	</fx:Declarations>
+	<s:Group id="labelDisplayGroup" left="0" right="0" top="0" bottom="0">
+		<s:Label id="lblData" top="9" left="7" right="5" textAlign="right" verticalAlign="middle" text="{label}"/>
+		
+	</s:Group>
+</s:GridItemRenderer>

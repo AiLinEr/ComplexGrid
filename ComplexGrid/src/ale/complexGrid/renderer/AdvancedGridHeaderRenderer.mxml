@@ -1,0 +1,242 @@
+<?xml version="1.0" encoding="utf-8"?>
+<s:GridItemRenderer xmlns:fx="http://ns.adobe.com/mxml/2009"
+					xmlns:s="library://ns.adobe.com/flex/spark"
+					xmlns:mx="library://ns.adobe.com/flex/mx"
+					xmlns:itemRenderer="widgets.DecisionSupport2.controls.superGrid.itemRenderer.*"
+					xmlns:datagrid="com.geo.skins.series.ghyzt.datagrid.*"
+					minWidth="120" minHeight="40" clipAndEnableScrolling="true">
+	
+	<fx:Script>
+		<![CDATA[
+			
+			import mx.collections.ArrayCollection;
+			import mx.collections.IList;
+			import mx.core.Container;
+			import mx.core.IVisualElement;
+			import mx.core.IVisualElementContainer;
+			import mx.graphics.IStroke;
+			import mx.graphics.SolidColorStroke;
+			
+			import spark.components.BorderContainer;
+			import spark.components.DataGrid;
+			import spark.components.HGroup;
+			import spark.components.Label;
+			import spark.components.SkinnableContainer;
+			import spark.components.VGroup;
+			import spark.layouts.HorizontalLayout;
+			import spark.layouts.VerticalLayout;
+			import spark.primitives.Line;
+			
+			/**
+			 *  @private
+			 *  Create and add the sortIndicator to the sortIndicatorGroup and the 
+			 *  labelDisplay into the labelDisplayGroup.
+			 */
+			override public function prepare(hasBeenRecycled:Boolean):void
+			{
+				super.prepare(hasBeenRecycled);
+				
+				dataGrid = grid.dataGrid;
+				if (!dataGrid) return;
+				if (labelDisplayGroup/*  && labelDisplay && (labelDisplay.parent != labelDisplayGroup) */)
+				{
+					labelDisplayGroup.removeAllElements();
+					//labelDisplayGroup.addElement(labelDisplay);
+					this.columnXML = new XML(column.dataField) as XML;
+					if (columnXML)
+					{
+						configView(columnXML);
+					}
+				}
+			}
+			
+			override public function set data(value:Object):void
+			{
+				super.data = value;
+			}
+			
+			private function configView(xml:XML):IVisualElement
+			{
+				labelDisplayGroup.removeAllElements();
+				if (xml.name().localName == "columngroup")
+				{
+					var vgroup:IVisualElement = addVGroup(xml);
+					this.labelDisplayGroup.addElement( vgroup );
+					return vgroup;
+				}
+				
+				return null;
+			}
+			
+			private function addVGroup(xml:XML):IVisualElement
+			{
+				var group:Group = new Group();
+				group.percentWidth = group.percentHeight = 100;
+				var rect:Rect = new Rect();
+				rect.percentWidth = rect.percentHeight = 100;
+				rect.fill = this.goupFill;
+				group.addElement(rect);
+				//向Group添加VGroup 
+				var container:VGroup = new VGroup();
+				container.percentWidth = container.percentHeight = 100;
+				container.verticalAlign = "middle";
+				container.horizontalAlign = "center";
+				container.gap = 1; 
+				/* var container:BorderContainer = new BorderContainer();
+				container.percentWidth = container.percentHeight = 100;
+				//container.borderStroke = this.stroke;
+				//container.backgroundFill = this.fill;
+				container.setStyle("borderVisible", false);
+				container.setStyle("borderWeight", 1);
+				
+				var layout:VerticalLayout = new VerticalLayout();
+				layout.verticalAlign = "middle";
+				layout.horizontalAlign = "center";
+				layout.gap =1;
+				container.layout = layout;  */
+				
+				var _width:Number = parseFloat(xml.hasOwnProperty("@width") && xml.@width != null ? xml.@width.toXMLString() : null );
+				container.addElement(addLabel(xml.@headerText, _width));
+				/* if (container.numElements > 0)
+				{//划横线
+					var sep:Line = new Line();
+					sep.stroke = new SolidColorStroke(0xcbcbcb, 1, 1);
+					sep.xFrom= 0;
+					sep.xTo= column.width;
+					sep.yFrom=sep.yTo=grid.rowHeight * container.numElements + 1;
+					container.addElement(sep);
+				}  */
+				container.addElement( addHGroup(xml) );
+				group.addElement(container);
+				return group;
+			}
+			//columnList
+			private function addHGroup(xml:XML):IVisualElement
+			{
+				var group:Group = new Group();
+				group.percentWidth = group.percentHeight = 100;
+				var rect:Rect = new Rect();
+				rect.percentWidth = rect.percentHeight = 100;
+				rect.fill = this.goupFill;
+				group.addElement(rect);
+				//向Group添加HGroup 
+				var container:HGroup = new HGroup();
+				container.percentWidth = 100;
+				container.gap = 1;
+				container.verticalAlign = "middle";
+				container.horizontalAlign = "center"; 
+				/*  var container:BorderContainer = new BorderContainer();
+				//container.percentWidth = 100;
+				//container.borderStroke = null;//this.stroke;
+				//container.backgroundFill = this.fill;
+				container.setStyle("borderVisible", false);
+				container.setStyle("borderWeight", 1);
+				container.setStyle("dropShadowVisible", false); 
+
+				var layout:HorizontalLayout = new HorizontalLayout();
+				layout.verticalAlign = "middle";
+				layout.horizontalAlign = "center";
+				layout.gap =1;
+				container.layout = layout; */
+				
+				for each(var _column:XML in xml.children())
+				{
+					/* if (container.numElements > 0)
+					{//划竖线
+						var sep:Line = new Line();
+						sep.stroke = new SolidColorStroke(0xcbcbcb, 1, 1);
+						sep.xFrom=sep.xTo=100*container.numElements+1;
+						sep.yFrom=0;
+						//sep.yTo=grid.rowHeight;
+						container.addElement(sep);
+					}  */
+					if (_column.name().localName == "columngroup")
+						container.addElement( addVGroup(_column) ); ////分类名称>>分类指标
+					else
+					{
+						var _width:Number = parseFloat(_column.hasOwnProperty("@width") && _column.@width != null ? _column.@width.toXMLString() : null );
+						container.addElement( addLabel(_column.@headerText, _width ) );
+					}
+				}
+				group.addElement(container);
+				return group;
+			}
+			private function addLabel(name:String, _width:Number=NaN):IVisualElement
+			{
+				var _typename:String = name;
+				var _typeLabel:Label = new Label();
+				_typeLabel.styleName = "typeLabelStyle";
+				if (isNaN(_width))
+					_typeLabel.percentWidth = 100;
+				else
+					_typeLabel.width = _width; 
+				_typeLabel.minWidth = 60;//设置最小值，可以使GridHeaderRender.width不会自动压缩
+				_typeLabel.height = grid.rowHeight;
+				_typeLabel.text=name;
+				return _typeLabel;
+			}
+			
+			
+			
+			[Bindable]
+			private var dataGrid:DataGrid;
+			private var dataFields:Array=[];
+			private var columnXML:XML;
+//			[Bindable]
+//			private var columnSeparator:IFactory;
+			
+		]]>
+	</fx:Script>
+	<fx:Style>
+		@namespace s "library://ns.adobe.com/flex/spark";
+		@namespace mx "library://ns.adobe.com/flex/mx";
+		@namespace itemRenderer "widgets.DecisionSupport2.controls.superGrid.itemRenderer.*";
+		@namespace datagrid "com.geo.skins.series.ghyzt.datagrid.*";
+		s|Label
+		{
+			opaqueBackground:#EDF6FE;
+			backgroundColor:#EDF6FE;
+			textAlign:center;
+			verticalAlign:middle;
+		}
+		.typeLabelStyle
+		{
+			opaqueBackground:#EDF6FE;
+			backgroundColor:#EDF6FE;
+			textAlign:center;
+			verticalAlign:middle;
+			color:#4C607A;
+		}
+	</fx:Style>
+	<fx:Declarations>
+		<s:SolidColor id="goupFill" color="0xCBCBCB" alpha="1"/>
+		<s:SolidColor id="labelFill" color="0xEDF6FE" alpha="1"/>
+		<s:SolidColorStroke id="borderStroke" color="0xCBCBCB" alpha="1" weight="1"/>
+		
+		<!--- @private -->
+		<fx:Component id="columnSeparator">
+		<s:Line>
+			<s:stroke>
+				<s:SolidColorStroke color="0xCBCBCB" weight="1" caps="square"/>
+			</s:stroke>
+		</s:Line>
+		</fx:Component>
+	</fx:Declarations>
+	<s:Group width="100%" height="100%" minWidth="{minWidth}">
+		<s:Rect left="0" right="0" top="0" bottom="0">
+			<s:fill>
+				<s:SolidColor color="0xCBCBCB" alpha="1"/>
+			</s:fill>
+		</s:Rect>
+		<!--<s:Rect width="100%" height="100%">
+			<s:fill>
+				<s:SolidColor color="0xEDF6FE" />
+			</s:fill>
+		</s:Rect>-->
+		<s:Group id="labelDisplayGroup" left="0" right="0" top="0" bottom="0">
+			
+		</s:Group>
+		
+	</s:Group>
+	
+</s:GridItemRenderer>
